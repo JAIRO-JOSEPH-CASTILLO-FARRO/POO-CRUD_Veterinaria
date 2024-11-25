@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import LabelFrame, Label, Entry, Button, W
 import os  # Para manejar el sistema de archivos
-from conexionSQL import *
+from conexion import *
 
 class FormularioInformacion:
     def __init__(self, parent):
