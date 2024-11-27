@@ -82,22 +82,131 @@ class FormularioMascota:
         self.actualizarTreeView()
 
     def cargarPersonas(self):
-        pass
+        try:
+            self.dueños = CConexion.mostrarPersonas()
+            self.comboDueño['values'] = [f"{dueño[0]} - {dueño[1]} {dueño[2]}" for dueño in self.dueños]
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudieron cargar los dueños: {e}")
+
 
     def guardarRegistros(self):
-        pass
+        try:
+            nombre = self.texBoxNombre.get().strip()
+            tipo = self.comboTipo.get().strip()
+            raza = self.texBoxRaza.get().strip()
+            sexo = self.comboSexo.get().strip()
+            edad = self.texBoxEdad.get().strip()
+            dueño = self.comboDueño.get().strip()
+
+            # Validaciones
+            if not nombre or not tipo or not raza or not sexo or not edad or not dueño:
+                messagebox.showwarning("Advertencia", "Por favor, complete todos los campos.")
+                return
+
+            # Obtener el ID del dueño seleccionado
+            dueño_id = dueño.split(" - ")[0]
+
+            # Guardar la mascota
+            CConexion.ingresarMascota(nombre, tipo, raza, sexo, edad, dueño_id)
+            self.actualizarTreeView()
+            messagebox.showinfo("Información", "Registro guardado exitosamente")
+
+            # Limpiar campos
+            self.limpiarCampos()
+
+            # Recargar la lista de dueños
+            self.cargarPersonas()  # Actualiza la lista de dueños
+
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudieron guardar los datos: {e}")
 
     def actualizarTreeView(self):
-        pass
+        try:
+            # Limpiar Treeview
+            for item in self.tree.get_children():
+                self.tree.delete(item)
+
+            # Insertar nuevos datos
+            for row in CConexion.mostrarMascotas():
+                # Obtener el nombre del dueño
+                dueño = CConexion.obtenerPersonaPorId(row[6])  # persona_id está en la posición 7
+                dueño_nombre = f"{dueño[1]} {dueño[2]}" if dueño else "Desconocido"
+
+                # Insertar en TreeView (omite la imagen si no quieres mostrarla)
+                self.tree.insert("", "end", values=(row[0], row[1], row[2], row[3], row[4], row[5], dueño_nombre))
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudieron cargar los datos: {e}")
 
     def seleccionarRegistro(self, event):
-        pass
+        try:
+            selected_item = self.tree.focus()
+            if selected_item:
+                values = self.tree.item(selected_item)['values']
+                self.texBoxId.delete(0, END)
+                self.texBoxId.insert(0, values[0])
+                self.texBoxNombre.delete(0, END)
+                self.texBoxNombre.insert(0, values[1])
+                self.comboTipo.set(values[2])  # Corregido: establecer el valor del tipo de mascota
+                self.texBoxRaza.delete(0, END)
+                self.texBoxRaza.insert(0, values[3])
+                self.comboSexo.set(values[4])  # Corregido: establecer el valor del sexo
+                self.texBoxEdad.delete(0, END)
+                self.texBoxEdad.insert(0, values[5])
+
+                # Seleccionar el dueño en el combobox
+                dueño_texto = ""
+                for dueño in self.dueños:
+                    if f"{dueño[1]} {dueño[2]}" == values[6]:
+                        dueño_texto = f"{dueño[0]} - {dueño[1]} {dueño[2]}"
+                        break
+                self.comboDueño.set(dueño_texto)  # Corregido: establecer el valor del dueño
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudieron cargar los datos seleccionados: {e}")
 
     def modificarRegistros(self):
-        pass
+        try:
+            id_mascota = self.texBoxId.get()
+            nombre = self.texBoxNombre.get()
+            tipo = self.comboTipo.get()
+            raza = self.texBoxRaza.get()
+            sexo = self.comboSexo.get()
+            edad = self.texBoxEdad.get()
+            dueño = self.comboDueño.get()
+
+            if not id_mascota:
+                messagebox.showwarning("Advertencia", "Debes seleccionar una mascota para modificar.")
+                return
+
+            dueño_id = dueño.split(" - ")[0]  # Obtener el ID del dueño seleccionado
+            CConexion.modificarMascota(id_mascota, nombre, tipo, raza, sexo, edad, dueño_id)
+            self.actualizarTreeView()
+            messagebox.showinfo("Información", "Registro modificado exitosamente")
+            self.limpiarCampos()
+
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudieron modificar los datos: {e}")
 
     def eliminarRegistros(self):
-        pass
+        try:
+            id_mascota = self.texBoxId.get()
+            if not id_mascota:
+                messagebox.showwarning("Advertencia", "Debes seleccionar una mascota para eliminar.")
+                return
+
+            respuesta = messagebox.askyesno("Confirmación", "¿Estás seguro de eliminar esta mascota?")
+            if respuesta:
+                CConexion.eliminarMascota(id_mascota)
+                self.actualizarTreeView()
+                messagebox.showinfo("Información", "Registro eliminado exitosamente")
+                self.limpiarCampos()
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudieron eliminar los datos: {e}")
 
     def limpiarCampos(self):
-        pass
+        self.texBoxId.delete(0, END)
+        self.texBoxNombre.delete(0, END)
+        self.comboTipo.set("")
+        self.texBoxRaza.delete(0, END)
+        self.comboSexo.set("")
+        self.texBoxEdad.delete(0, END)
+        self.comboDueño.set("")
