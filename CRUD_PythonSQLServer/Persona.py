@@ -65,19 +65,102 @@ class FormularioPersona:
         self.actualizarTreeView()
 
     def guardarRegistros(self):
-        pass
+        try:
+            nombre = self.texBoxNombre.get()
+            apellido = self.texBoxApellido.get()
+            telefono = self.texBoxTelefono.get()
+            correo = self.texBoxCorreo.get()
+            
+            if not nombre or not apellido:
+                messagebox.showwarning("Advertencia", "Nombre y Apellido son obligatorios")
+                return
+            
+            CConexion.ingresarPersona(nombre, apellido, telefono, correo)
+            self.actualizarTreeView()
+            messagebox.showinfo("Información", "Registro guardado exitosamente")
+            
+            # Limpiar campos
+            self.limpiarCampos()
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudieron guardar los datos: {e}")
 
     def actualizarTreeView(self):
-        pass
+        try:
+            # Limpiar Treeview
+            for item in self.tree.get_children():
+                self.tree.delete(item)
+            
+            # Insertar nuevos datos
+            for row in CConexion.mostrarPersonas():
+                self.tree.insert("", "end", values=(row[0], row[1], row[2], row[3], row[4]))
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudieron cargar los datos: {e}")
 
     def seleccionarRegistro(self, event):
-        pass
+        try:
+            selected_item = self.tree.focus()
+            if selected_item:
+                values = self.tree.item(selected_item)['values']
+                self.texBoxId.delete(0, END)
+                self.texBoxId.insert(0, values[0])
+                self.texBoxNombre.delete(0, END)
+                self.texBoxNombre.insert(0, values[1])
+                self.texBoxApellido.delete(0, END)
+                self.texBoxApellido.insert(0, values[2])
+                self.texBoxTelefono.delete(0, END)
+                self.texBoxTelefono.insert(0, values[3])
+                self.texBoxCorreo.delete(0, END)
+                self.texBoxCorreo.insert(0, values[4])
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo seleccionar el registro: {e}")
 
     def modificarRegistros(self):
-        pass
+        try:
+            id_persona = self.texBoxId.get()
+            nombre = self.texBoxNombre.get()
+            apellido = self.texBoxApellido.get()
+            telefono = self.texBoxTelefono.get()
+            correo = self.texBoxCorreo.get()
+            
+            if not id_persona:
+                messagebox.showwarning("Advertencia", "Selecciona un registro para modificar")
+                return
+            if not nombre or not apellido:
+                messagebox.showwarning("Advertencia", "Nombre y Apellido son obligatorios")
+                return
+            
+            CConexion.modificarPersona(id_persona, nombre, apellido, telefono, correo)
+            self.actualizarTreeView()
+            messagebox.showinfo("Información", "Registro modificado exitosamente")
+            
+            # Limpiar campos
+            self.limpiarCampos()
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudieron modificar los datos: {e}")
 
     def eliminarRegistros(self):
-        pass
+        try:
+            id_persona = self.texBoxId.get()
+            
+            if not id_persona:
+                messagebox.showwarning("Advertencia", "Selecciona un registro para eliminar")
+                return
+            
+            confirm = messagebox.askyesno("Confirmar", "¿Estás seguro de eliminar este registro?")
+            if confirm:
+                CConexion.eliminarPersona(id_persona)
+                self.actualizarTreeView()
+                messagebox.showinfo("Información", "Registro eliminado exitosamente")
+                
+                # Limpiar campos
+                self.limpiarCampos()
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudieron eliminar los datos: {e}")
 
     def limpiarCampos(self):
-        pass
+        self.texBoxId.delete(0, END)
+        self.texBoxNombre.delete(0, END)
+        self.texBoxApellido.delete(0, END)
+        self.texBoxTelefono.delete(0, END)
+        self.texBoxCorreo.delete(0, END)
+        
